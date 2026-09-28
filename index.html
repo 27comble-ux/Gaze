@@ -61,10 +61,11 @@
 
 
   <!-- SAFE SPHERE TEMPLATE -->
+  <!-- Starts PURPLE -->
   <a-sphere
     id="safeTemplate"
     radius=".5"
-    color="#00FF55"
+    color="#FA00FA"
 
     animation__color="
       property: color;
@@ -157,6 +158,9 @@ function createSafeSphere() {
 
   safe.setAttribute('visible', true);
 
+  // Make sure every new safe sphere starts purple
+  safe.setAttribute('color', '#FA00FA');
+
 
   // Random starting position
   safe.setAttribute('position', {
@@ -246,17 +250,3 @@ if (scene.hasLoaded) {
 </html>
 
 
-The important addition is:
-
-box.addEventListener('click', () => {
-  sky.emit('redhit');
-});
-
-
-So when you look at the red sphere long enough for the cursor to click it, two things happen at once:
-
-🔴 The red sphere expands.
-
-🌌 The sky turns red.
-
-One thing to note: the sky currently stays red after the red sphere expands. If you want, I can also make the sky fade back to gray after a few seconds, like a warning effect.
