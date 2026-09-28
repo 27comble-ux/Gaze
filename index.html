@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://aframe.io/releases/1.8.0/aframe.min.js"></script>
+</head>
+
+<body>
+
+<a-scene>
+
+  <a-camera>
+    <a-cursor
+      fuse="true"
+      fuse-timeout="100"
+      color="orange">
+    </a-cursor>
+  </a-camera>
+
+
+  <!-- SKY -->
+  <a-sky
+    id="sky"
+    color="#ECECEC"
+
+    animation__sky="
+      property: color;
+      from: #ECECEC;
+      to: #FF0000;
+      dur: 200;
+      startEvents: redhit;
+      easing: easeOutQuad;
+    ">
+  </a-sky>
+
+
+  <!-- GREEN PLAYING AREA -->
+  <a-plane
+    rotation="-90 0 0"
+    width="20"
+    height="20"
+    color="#7BC8A4">
+  </a-plane>
+
+
+  <!-- RED SPHERE -->
+  <a-sphere
+    id="box"
+    radius=".5"
+    position="0 1 -5"
+    color="red"
+
+    animation__scale="
+      property: scale;
+      from: 1 1 1;
+      to: 20 20 20;
+      dur: 200;
+      startEvents: click;
+      easing: easeOutQuad;
+    ">
+  </a-sphere>
+
+
+  <!-- SAFE SPHERE TEMPLATE -->
+  <a-sphere
+    id="safeTemplate"
+    radius=".5"
+    color="#00FF55"
+
+    animation__color="
+      property: color;
+      from: #FA00FA;
+      to: #00FA00;
+      startEvents: click;
+      dur: 600;
+    "
+
+    animation__shrink="
+      property: scale;
+      from: 1 1 1;
+      to: 0 0 0;
+      dur: 600;
+      startEvents: click;
+    "
+
+    visible="false">
+  </a-sphere>
+
+
+</a-scene>
+
+
+<script>
+
+const scene = document.querySelector('a-scene');
+const box = document.querySelector('#box');
+const sky = document.querySelector('#sky');
+const safeTemplate = document.querySelector('#safeTemplate');
+
+
+// ==========================================
+// PLAY AREA
+// ==========================================
+
+const MIN_X = -9.5;
+const MAX_X = 9.5;
+
+const MIN_Z = -9.5;
+const MAX_Z = 9.5;
+
+
+// Height of the spheres
+const MIN_Y = 0.5;
+const MAX_Y = 3;
+
+
+// ==========================================
+// RANDOM NUMBER
+// ==========================================
+
+const rand = (min, max) =>
+  min + Math.random() * (max - min);
+
+
+// ==========================================
+// MOVE A SPHERE
+// ==========================================
+
+function moveSphere(sphere) {
+
+  sphere.setAttribute('animation__move', {
+
+    property: 'position',
+
+    to: `${rand(MIN_X, MAX_X)}
+         ${rand(MIN_Y, MAX_Y)}
+         ${rand(MIN_Z, MAX_Z)}`,
+
+    // Half speed
+    dur: 2000,
+
+    easing: 'easeInOutQuad'
+
+  });
+
+}
+
+
+// ==========================================
+// CREATE SAFE SPHERE
+// ==========================================
+
+function createSafeSphere() {
+
+  const safe = safeTemplate.cloneNode(true);
+
+  safe.removeAttribute('id');
+
+  safe.setAttribute('visible', true);
+
+
+  // Random starting position
+  safe.setAttribute('position', {
+
+    x: rand(MIN_X, MAX_X),
+
+    y: rand(MIN_Y, MAX_Y),
+
+    z: rand(MIN_Z, MAX_Z)
+
+  });
+
+
+  scene.appendChild(safe);
+
+
+  // Keep this sphere moving independently
+  safe.addEventListener('animationcomplete__move', () => {
+
+    moveSphere(safe);
+
+  });
+
+
+  moveSphere(safe);
+
+}
+
+
+// ==========================================
+// RED SPHERE
+// ==========================================
+
+box.addEventListener('animationcomplete__move', () => {
+
+  moveSphere(box);
+
+});
+
+
+// ==========================================
+// WHEN RED SPHERE IS LOOKED AT
+// ==========================================
+
+box.addEventListener('click', () => {
+
+  // Tell the sky to turn red
+  sky.emit('redhit');
+
+});
+
+
+// ==========================================
+// START GAME
+// ==========================================
+
+function start() {
+
+  // Start red sphere
+  moveSphere(box);
+
+
+  // Create 10 safe spheres
+  for (let i = 0; i < 10; i++) {
+
+    createSafeSphere();
+
+  }
+
+}
+
+
+// Wait for A-Frame
+if (scene.hasLoaded) {
+
+  start();
+
+} else {
+
+  scene.addEventListener('loaded', start);
+
+}
+
+</script>
+
+</body>
+</html>
+
+
+The important addition is:
+
+box.addEventListener('click', () => {
+  sky.emit('redhit');
+});
+
+
+So when you look at the red sphere long enough for the cursor to click it, two things happen at once:
+
+🔴 The red sphere expands.
+
+🌌 The sky turns red.
+
+One thing to note: the sky currently stays red after the red sphere expands. If you want, I can also make the sky fade back to gray after a few seconds, like a warning effect.
